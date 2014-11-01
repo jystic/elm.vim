@@ -1,142 +1,190 @@
-" Vim syntax file
-" Language: Elm (http://elm-lang.org/)
-" Maintainer: Alexander Noriega
-" Latest Revision: 01 November 2013
-
-if exists("b:current_syntax")
+if version < 600
+  syn clear
+elseif exists("b:current_syntax")
   finish
 endif
 
-" Keywords
-syn keyword elmKeyword as case class data default deriving do else export foreign
-syn keyword elmKeyword hiding jsevent if import in infix infixl infixr instance let
-syn keyword elmKeyword module newtype of then type where _
+syntax sync fromstart "mmhhhh.... is this really ok to do so?
 
-" Builtin operators
-syn match elmBuiltinOp "\.\."
-syn match elmBuiltinOp "|\{,2\}"
-syn match elmBuiltinOp ":"
-syn match elmBuiltinOp "::"
-syn match elmBuiltinOp "="
-syn match elmBuiltinOp "\\"
-syn match elmBuiltinOp "\""
-syn match elmBuiltinOp "->"
-syn match elmBuiltinOp "<-"
-syn match elmBuiltinOp "\u2192"
-syn match elmBuiltinOp "\u03BB"
-syn match elmBuiltinOp "\$"
-syn match elmBuiltinOp "&&"
-syn match elmBuiltinOp "+"
-syn match elmBuiltinOp "++"
-syn match elmBuiltinOp "-"
-syn match elmBuiltinOp "\."
-syn match elmBuiltinOp "/"
-syn match elmBuiltinOp "/="
-syn match elmBuiltinOp "<"
-syn match elmBuiltinOp "<="
-syn match elmBuiltinOp "=="
-syn match elmBuiltinOp ">"
-syn match elmBuiltinOp ">="
-syn match elmBuiltinOp "\^"
-syn match elmBuiltinOp "\*"
-syn match elmBuiltinOp "<\~"
-syn match elmBuiltinOp "\~"
+" (Qualified) identifiers (no default highlighting)
+syn match ConId "\(\<[A-Z][a-zA-Z0-9_']*\.\)\=\<[A-Z][a-zA-Z0-9_']*\>"
+syn match VarId "\(\<[A-Z][a-zA-Z0-9_']*\.\)\=\<[a-z][a-zA-Z0-9_']*\>"
 
-" Builtin types
-syn keyword elmBuiltinType Bool Char False Float GT Int Just LT Maybe Nothing String True
-syn keyword elmBuiltinType Time Date Text Order Element List Signal Tuple Either
+" Infix operators--most punctuation characters and any (qualified) identifier
+" enclosed in `backquotes`. An operator starting with : is a constructor,
+" others are variables (e.g. functions).
+syn match elmVarSym "\(\<[A-Z][a-zA-Z0-9_']*\.\)\=[-!#$%&\*\+/<=>\?@\\^|~.][-!#$%&\*\+/<=>\?@\\^|~:.]*"
+syn match elmConSym "\(\<[A-Z][a-zA-Z0-9_']*\.\)\=:[-!#$%&\*\+./<=>\?@\\^|~:]*"
+syn match elmVarSym "`\(\<[A-Z][a-zA-Z0-9_']*\.\)\=[a-z][a-zA-Z0-9_']*`"
+syn match elmConSym "`\(\<[A-Z][a-zA-Z0-9_']*\.\)\=[A-Z][a-zA-Z0-9_']*`"
 
-" Special names
-syntax match specialName "^main " 
+" Reserved symbols--cannot be overloaded.
+syn match elmDelimiter  "(\|)\|\[\|\]\|,\|;\|_\|{\|}"
 
-" Libraries
-syn keyword elmCoreLibrary List Time Collage Prelude Random Signal String Http Set Color Keyboard Text WebSocket Automaton Mouse Transform2D Dict Char Maybe Json Window Experimental JavaScript Basics Either Date Element Touch Input
+sy region elmInnerParen start="(" end=")" contained contains=elmInnerParen,elmConSym,elmType,elmVarSym
+sy region elm_InfixOpFunctionName start="^(" end=")\s*[^:`]\(\W\&\S\&[^'`()[\]{}@]\)\+"re=s
+    \ contained keepend contains=elmInnerParen,elm_HlInfixOp
 
-" Library functions
+sy match elm_hlFunctionName "[a-z_]\(\S\&[^,\(\)\[\]]\)*" contained 
+sy match elm_FunctionName "^[a-z_]\(\S\&[^,\(\)\[\]]\)*" contained contains=elm_hlFunctionName
+sy match elm_HighliteInfixFunctionName "`[a-z_][^`]*`" contained
+sy match elm_InfixFunctionName "^\S[^=]*`[a-z_][^`]*`"me=e-1 contained contains=elm_HighliteInfixFunctionName,elmType,elmConSym,elmVarSym
+sy match elm_HlInfixOp "\(\W\&\S\&[^`(){}'[\]]\)\+" contained
+sy match elm_InfixOpFunctionName "^\(\w\|[[\]{}]\)\+\s*[^:]=*\(\W\&\S\&[^='`()[\]{}@]\)\+"
+    \ contained contains=elm_HlInfixOp
 
-" Automaton
-syn keyword elmBuiltinFunction run step (>>>) (<<<) combine pure state hiddenState count average
-" Basics
-syn keyword elmBuiltinFunction radians degrees turns fromPolar toPolar (+) (-) (*) (/) div rem mod (^) cos sin tan acos asin atan atan2 sqrt abs logBase clamp pi e (<) (>) compare min max (&&) (||) xor not otherwise round truncate floor ceiling toFloat (.) (|>) (<|) id fst snd flip curry uncurry
-" Char
-syn keyword elmBuiltinFunction isUpper isLower isDigit isOctDigit isHexDigit toUpper toLower toLocaleUpper toLocaleLower toCode fromCode
-" Color
-syn keyword elmBuiltinFunction rgba rgb lightRed red darkRed lightOrange orange darkOrange lightYellow yellow darkYellow lightGreen green darkGreen lightBlue blue darkBlue lightPurple purple darkPurple lightBrown brown darkBrown black white lightGrey grey darkGrey lightGray gray darkGray lightCharcoal charcoal darkCharcoal grayscale greyscale complement hsva hsv linear radial
-" Date
-syn keyword elmBuiltinFunction read toTime year month day dayOfWeek hour minute second
-" Dict
-syn keyword elmBuiltinFunction empty min max lookup findWithDefault member rotateLeft rotateRight rotateLeftIfNeeded rotateRightIfNeeded color_flip color_flipIfNeeded ensureBlackRoot insert singleton isBBlack moreBlack lessBlack moreBlackTree lessBlackTree del rem bubble remove_max balance blackish balance_node blacken redden remove map foldl foldr union intersect diff keys values toList fromList
-" Either
-syn keyword elmBuiltinFunction either isLeft isRight lefts rights partition
-" Graphics.Collage
-syn keyword elmBuiltinFunction defaultLine solid dashed dotted form filled textured gradient outlined traced sprite toForm group groupTransform move moveX moveY scale rotate alpha collage path segment polygon rect square oval circle ngon
-" Graphics.Element
-syn keyword elmBuiltinFunction widthOf heightOf sizeOf width height size opacity color tag link image fittedImage croppedImage tiledImage container spacer flow above below beside layers absolute relative middle topLeft topRight bottomLeft bottomRight midLeft midRight midTop midBottom middleAt topLeftAt topRightAt bottomLeftAt bottomRightAt midLeftAt midRightAt midTopAt midBottomAt up down left right inward outward
-" Graphics.Input
-syn keyword elmBuiltinFunction buttons button customButtons customButton checkboxes checkbox hoverables hoverable fields emptyFieldState field password email dropDown stringDropDown
-" Http
-syn keyword elmBuiltinFunction request get post send sendGet
-" JavaScript
-syn keyword elmBuiltinFunction toList toInt toFloat toBool toString fromList fromInt fromFloat fromBool fromString fromElement toElement
-" JavaScript.Experimental
-syn keyword elmBuiltinFunction toRecord fromRecord
-" Json
-syn keyword elmBuiltinFunction toString toJSString fromString fromJSString fromJSObject toJSObject
-" Keyboard
-syn keyword elmBuiltinFunction directions arrows wasd isDown shift ctrl space enter keysDown lastPressed
-" List
-syn keyword elmBuiltinFunction (::) (++) head tail last isEmpty map foldl foldr foldl1 foldr1 scanl scanl1 filter length reverse all any and or concat concatMap sum product maximum minimum partition zip zipWith unzip join intersperse take drop repeat
-" Maybe
-syn keyword elmBuiltinFunction maybe isJust isNothing justs
-" Mouse
-syn keyword elmBuiltinFunction position isDown isClicked clicks
-" Prelude
-syn keyword elmBuiltinFunction show readInt readFloat
-" Random
-syn keyword elmBuiltinFunction range float floatList
-" Set
-syn keyword elmBuiltinFunction empty singleton insert remove member union intersect diff toList fromList foldl foldr map
-" Signal
-syn keyword elmBuiltinFunction constant lift lift2 lift3 lift4 lift5 lift6 lift7 lift8 foldp merge merges combine count countIf keepIf dropIf keepWhen dropWhen dropRepeats sampleOn (<~) (~)
-" String
-syn keyword elmBuiltinFunction isEmpty cons uncons append concat length map filter reverse foldl foldr split join repeat sub left right dropLeft dropRight pad padLeft padRight trim trimLeft trimRight words lines toUpper toLower any all contain[s] startsWith endsWith indexes indices toInt toFloat toList fromList
-" Text
-syn keyword elmBuiltinFunction toText typeface monospace header link height color bold italic overline underline strikeThrough justified centered righted text plainText markdown asText
-" Time
-syn keyword elmBuiltinFunction millisecond second minute hour inMilliseconds inSeconds inMinutes inHours fps fpsWhen every since timestamp delay
-" Touch
-syn keyword elmBuiltinFunction touches taps
-" Transform2D
-syn keyword elmBuiltinFunction identity matrix rotation translation scale scaleX scaleY multiply
-" WebSocket
-syn keyword elmBuiltinFunction connect
-" Window
-syn keyword elmBuiltinFunction dimensions width height
+sy match elm_OpFunctionName        "(\(\W\&[^(),]\)\+)" contained
+sy region elm_Function start="^[a-z_([{]" end="=\(\s\|\n\|\w\|[([]\)" keepend extend
+        \ contains=elm_OpFunctionName,elm_InfixOpFunctionName,elm_InfixFunctionName,elm_FunctionName,elmType,elmConSym,elmVarSym
+
+sy match elm_DeclareFunction "^[a-z_(]\S*\(\s\|\n\)*:" contains=elm_FunctionName,elm_OpFunctionName
+
+sy keyword elmStructure data class where instance default deriving
+sy keyword elmTypedef type newtype
+
+sy keyword elmInfix infix infixl infixr
+sy keyword elmStatement  do case of let in
+sy keyword elmConditional if then else
+
+if exists("elm_highlight_types")
+  " Primitive types from the standard prelude and libraries.
+  sy match elmType "\<[A-Z]\(\S\&[^,.]\)*\>"
+  sy match elmType "()"
+  sy match elmSpecial "\<number'*\>"
+  sy match elmSpecial "\<comparable'*\>"
+  sy match elmSpecial "\<appendable'*\>"
+endif
+
+" Not real keywords, but close.
+if exists("elm_highlight_boolean")
+  " Boolean constants from the standard prelude.
+  syn keyword elmBoolean True False
+endif
+
+sy keyword elmModuleStartLabel module contained
+sy keyword elmExportModuleLabel module contained
+sy keyword elmModuleWhereLabel where contained
+sy match elmImport		"\<import\>\(.\|[^(]\)*\((.*)\)\?" contains=elmImportLabel,elmImportMod,elmModuleName,elmImportList
+sy keyword elmImportLabel import contained
+sy keyword elmImportMod		as qualified hiding contained
+sy match   elmModuleName  excludenl "\([A-Z]\w*\.\?\)*" contained 
+sy region elmImportListInner start="(" end=")" contained keepend extend contains=elm_OpFunctionName
+sy region  elmImportList matchgroup=elmImportListParens start="("rs=s+1 end=")"re=e-1
+        \ contained 
+        \ keepend extend
+        \ contains=elmType,elmLineComment,elmBlockComment,elm_hlFunctionName,elmImportListInner
+sy region elmExportListInner start="(" end=")" contained keepend extend 
+sy region elmExportListInner start="(" end=")" contained keepend extend contains=elm_OpFunctionName
+sy match elmExportModule "\<module\>\(\s\|\t\|\n\)*.*" contained contains=elmExportModuleLabel,elmModuleName
+sy region elmExportList matchgroup=elmExportListParens start="("rs=s+1 end=")"re=e-1
+        \ contained
+        \ keepend extend
+        \ contains=elmBlockComment,elmLineComment,elmType,elm_hlFunctionName,elmExportListInner,elmExportModule
+
+
+sy keyword elmFFIForeign foreign contained
+sy keyword elmFFIImportExport import export contained
+sy keyword elmFFICallConvention jsevent contained
+sy region  elmFFIString		start=+"+  skip=+\\\\\|\\"+  end=+"+  contains=elmSpecialChar
+sy match elmFFI excludenl "\<foreign\>\(.\&[^\"]\)*\"\(.\)*\"\(\s\|\n\)*\(.\)*::"
+  \ keepend
+  \ contains=elmFFIForeign,elmFFIImportExport,elmFFICallConvention,elmFFIString,elm_OpFunctionName,elm_hlFunctionName
+
+" elmModule regex MUST match all possible symbols between 'module' and 'where'
+" else overlappings with other syntax elements will break correct elmModule 
+" syntax highliting or evaluation of regex will stall vim.
+"
+" regex parts:
+"   1: match keyword "module"
+"   2: match modulename (optionaly comma separated)
+"   3.1 and 3.2: parens of optional symbol list
+"   4: final keyword "where"
+"   5: any alphanumeric symbol
+"   6: symbol list delimiter ","
+"   7: any symbol non-alphanumeric symbol enclosed in parenthesis. e.g. (*)
+"   8: optional line comment
+"
+"                                                                         |   optional Symbol List                            |
+"                             |   1    |            |   2   |             |3.1| 5  6 :  7  :   8                          |3.2|            |   4   |
+syn match elmModule excludenl "\<module\>\(\s\|\n\)*\(\<.*\>\)\(\s\|\n\)*\((\(\w\|,\|(\W*)\|--.*\n\|\.\|{\|}\|-\|\#\|'\|\s\|\n\)*)\)\?\(\s\|\n\)*\<where\>" 
+    \ contains=elmModuleStartLabel,elmModuleWhereLabel,elmModuleName,elmExportList,elmModuleStart
+
+"hi elmModule guibg=red
+
+syn match  elmSpecialChar	contained "\\\([0-9]\+\|o[0-7]\+\|x[0-9a-fA-F]\+\|[\"\\'&\\abfnrtv]\|^[A-Z^_\[\\\]]\)"
+syn match  elmSpecialChar	contained "\\\(NUL\|SOH\|STX\|ETX\|EOT\|ENQ\|ACK\|BEL\|BS\|HT\|LF\|VT\|FF\|CR\|SO\|SI\|DLE\|DC1\|DC2\|DC3\|DC4\|NAK\|SYN\|ETB\|CAN\|EM\|SUB\|ESC\|FS\|GS\|RS\|US\|SP\|DEL\)"
+syn match  elmSpecialCharError	contained "\\&\|'''\+"
+sy region  elmString		start=+"+  skip=+\\\\\|\\"+  end=+"+  contains=elmSpecialChar,@Spell
+sy match   elmCharacter		"[^a-zA-Z0-9_']'\([^\\]\|\\[^']\+\|\\'\)'"lc=1 contains=elmSpecialChar,elmSpecialCharError
+sy match   elmCharacter		"^'\([^\\]\|\\[^']\+\|\\'\)'" contains=elmSpecialChar,elmSpecialCharError
+sy match   elmNumber		"\<[0-9]\+\>\|\<0[xX][0-9a-fA-F]\+\>\|\<0[oO][0-7]\+\>"
+sy match   elmFloat		"\<[0-9]\+\.[0-9]\+\([eE][-+]\=[0-9]\+\)\=\>"
 
 " Comments
-syn match elmTodo "[tT][oO][dD][oO]\|FIXME\|XXX" contained
-syn match elmLineComment "--.*" contains=elmTodo,@spell
-syn region elmComment matchgroup=elmComment start="{-|\=" end="-}" contains=elmTodo,elmComment,@spell
+sy keyword elmCommentTodo    TODO FIXME XXX TBD contained
+sy match   elmLineComment      "---*\([^-!#$%&\*\+./<=>\?@\\^|~].*\)\?$" contains=elmCommentTodo,@Spell
+sy region  elmBlockComment     start="{-"  end="-}" contains=elmBlockComment,elmCommentTodo,@Spell
+sy region  elmPragma	       start="{-#" end="#-}"
 
-" String literals
-syn region elmString start="\"" skip="\\\"" end="\"" contains=elmStringEscape
-syn match elmStringEscape "\\u[0-9a-fA-F]\{4}" contained
-syn match elmStringEscape "\\[nrfvb\\\"]" contained
+if version >= 508 || !exists("did_elm_syntax_inits")
+  if version < 508
+    let did_elm_syntax_inits = 1
+    command -nargs=+ HiLink hi link <args>
+  else
+    command -nargs=+ HiLink hi def link <args>
+  endif
 
-" Number literals
-syn match elmNumber "\(\<\d\+\>\)"
-syn match elmNumber "\(\<\d\+\.\d\+\>\)"
+  HiLink elm_hlFunctionName    Function
+  HiLink elm_HighliteInfixFunctionName Function
+  HiLink elm_HlInfixOp       Function
+  HiLink elm_OpFunctionName  Function
+  HiLink elmTypedef          Typedef
+  HiLink elmVarSym           elmOperator
+  HiLink elmConSym           elmOperator
+  if exists("elm_highlight_delimiters")
+    " Some people find this highlighting distracting.
+	HiLink elmDelimiter        Delimiter
+  endif
+
+  HiLink elmModuleStartLabel Structure
+  HiLink elmExportModuleLabel Keyword
+  HiLink elmModuleWhereLabel Structure
+  HiLink elmModuleName       Normal
+
+  HiLink elmImportLabel      Include
+  HiLink elmImportMod        Include
+
+  HiLink elmOperator         Operator
+
+  HiLink elmInfix            Keyword
+  HiLink elmStructure        Structure
+  HiLink elmStatement        Statement
+  HiLink elmConditional      Conditional
+
+  HiLink elmSpecialCharError Error
+  HiLink elmSpecialChar      SpecialChar
+  HiLink elmString           String
+  HiLink elmFFIString        String
+  HiLink elmCharacter        Character
+  HiLink elmNumber           Number
+  HiLink elmFloat            Float
+
+  HiLink elmLiterateComment		  elmComment
+  HiLink elmBlockComment     elmComment
+  HiLink elmLineComment      elmComment
+  HiLink elmComment          Comment
+  HiLink elmCommentTodo      Todo
+  HiLink elmPragma           SpecialComment
+  HiLink elmBoolean			  Boolean
+  HiLink elmType             Type
+
+  HiLink elmSpecial            Debug
+
+  HiLink elmFFIForeign       Keyword
+  HiLink elmFFIImportExport  Structure
+  HiLink elmFFICallConvention Keyword
+
+  delcommand HiLink
+endif
 
 let b:current_syntax = "elm"
-
-hi def link elmKeyword            Keyword
-hi def link elmBuiltinOp          Special
-hi def link elmBuiltinType        Type
-hi def link elmBuiltinFunction    Function
-hi def link elmCoreLibrary        Type
-hi def link elmTodo               Todo
-hi def link elmLineComment        Comment
-hi def link elmComment            Comment
-hi def link elmString             String
-hi def link elmNumber             Number
-hi def link specialName           Special
