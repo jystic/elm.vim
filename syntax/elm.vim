@@ -34,13 +34,11 @@ sy match elm_InfixOpFunctionName "^\(\w\|[[\]{}]\)\+\s*[^:]=*\(\W\&\S\&[^='`()[\
     \ contained contains=elm_HlInfixOp
 
 sy match elm_OpFunctionName        "(\(\W\&[^(),]\)\+)" contained
-sy region elm_Function start="^[a-z_([{]" end="=\(\s\|\n\|\w\|[([]\)" keepend extend
-        \ contains=elm_OpFunctionName,elm_InfixOpFunctionName,elm_InfixFunctionName,elm_FunctionName,elmType,elmConSym,elmVarSym
+sy region elm_Function start="^[a-z_([{]" end="=\(\s\|\n\|\w\|[([]\)" keepend extend contains=elm_OpFunctionName,elm_InfixOpFunctionName,elm_InfixFunctionName,elm_FunctionName,elmType,elmConSym,elmVarSym
 
 sy match elm_DeclareFunction "^[a-z_(]\S*\(\s\|\n\)*:" contains=elm_FunctionName,elm_OpFunctionName
 
-sy keyword elmStructure data class where instance default deriving
-sy keyword elmTypedef type newtype
+sy keyword elmStructure data where instance default deriving type newtype port
 
 sy keyword elmInfix infix infixl infixr
 sy keyword elmStatement  do case of let in
@@ -138,7 +136,6 @@ if version >= 508 || !exists("did_elm_syntax_inits")
   HiLink elm_HighliteInfixFunctionName Function
   HiLink elm_HlInfixOp       Function
   HiLink elm_OpFunctionName  Function
-  HiLink elmTypedef          Typedef
   HiLink elmVarSym           elmOperator
   HiLink elmConSym           elmOperator
   if exists("elm_highlight_delimiters")
